@@ -1,5 +1,6 @@
 package com.example.robotcontroller;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -21,7 +22,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,14 +34,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
 
-    private final int STOP = 0;
-    private final int UP = 1;
-    private final int DOWN = 2;
-    private final int LEFT = 3;
-    private final int RIGHT = 4;
-
-    private boolean driving = false;
-
     public int direction = 0;
 
     private static final String TAG = "MainActivity";
@@ -49,7 +41,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     UUID SERVICE_UUID = UUID.fromString("6f4cee11-d76c-49a5-b2d5-5b91e1db87b2");
     UUID CHARACTERISTIC_DIRECTION_UUID = UUID.fromString("7dbfd27a-b283-4ea3-a90d-75c58aea3511");
     UUID DESCRIPTOR_CONFIG_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
-    UUID CHARACTERISTIC_INTERACTOR_UUID = UUID.fromString("df6531c8-792c-4686-8b58-71d7d473403e");
 
     private Set<BluetoothDevice> devices = new HashSet<>();
 
@@ -73,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 Log.i(TAG, "BluetoothDevice CONNECTED: " + device);
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "BluetoothDevice DISCONNECTED: " + device);
-                // Remove device from any active subscriptions
+                // Remove device from list to receive notifications
                 devices.remove(device);
             }
         }
@@ -88,17 +79,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 // Invalid characteristic
                 Log.w(TAG, "Invalid Characteristic Read: " + characteristic.getUuid());
                 gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_FAILURE, 0, null);
-            }
-        }
-
-        @Override
-        public void onCharacteristicWriteRequest(BluetoothDevice device,
-                                                 int requestId, BluetoothGattCharacteristic characteristic,
-                                                 boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            if (CHARACTERISTIC_INTERACTOR_UUID.equals(characteristic.getUuid())) {
-                System.out.println(value);
-                driving = !driving;
-                notifyRegisteredDevices();
             }
         }
 
@@ -142,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         }
     };
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,32 +140,35 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
 
-
         startAdvertising();
         startGattServer();
     }
 
-
+    @SuppressWarnings("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        final int STOP = 0;
+        final int UP = 1;
+        final int DOWN = 2;
+        final int LEFT = 3;
+        final int RIGHT = 4;
+
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             switch (v.getId()) {
                 case R.id.btn_up:
-                    //Toast.makeText(this, "Up", Toast.LENGTH_SHORT).show();
                     direction = UP;
                     break;
                 case R.id.btn_down:
-                    //Toast.makeText(this, "Down", Toast.LENGTH_SHORT).show();
                     direction = DOWN;
                     break;
                 case R.id.btn_left:
-                    //Toast.makeText(this, "Left", Toast.LENGTH_SHORT).show();
                     direction = LEFT;
                     break;
                 case R.id.btn_right:
-                    //Toast.makeText(this, "Right", Toast.LENGTH_SHORT).show();
                     direction = RIGHT;
                     break;
+                default:
+                    direction = STOP;
             }
         }
         else if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -209,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 .build();
 
         AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName(false)
+                .setIncludeDeviceName(true)
                 .setIncludeTxPowerLevel(false)
                 .addServiceUuid(new ParcelUuid(SERVICE_UUID))
                 .build();
@@ -239,7 +223,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 .getService(SERVICE_UUID)
                 .getCharacteristic(CHARACTERISTIC_DIRECTION_UUID);
 
-        System.out.println("Notify all registered devices!!!!!!!!!!!!!!!");
         for (BluetoothDevice device : devices) {
             byte[] value = toByteArray(direction);
             characteristic.setValue(value);
@@ -251,13 +234,5 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         return new byte[]{
                 (byte) (value >> 24), (byte) (value >> 16), (byte) (value >> 8), (byte) value
         };
-    }
-
-    public static int fromByteArray(byte[] bytes) {
-        return fromBytes(bytes[0], bytes[1], bytes[2], bytes[3]);
-    }
-
-    private static int fromBytes(byte b1, byte b2, byte b3, byte b4) {
-        return b1 << 24 | (b2 & 0xFF) << 16 | (b3 & 0xFF) << 8 | (b4 & 0xFF);
     }
 }

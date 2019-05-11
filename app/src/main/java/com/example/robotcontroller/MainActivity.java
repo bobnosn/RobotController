@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     Button btn_up, btn_down, btn_left, btn_right;
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
+    private BluetoothLeAdvertiser bluetoothLeAdvertiser;
 
     public int direction = 0;
 
@@ -144,6 +145,15 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         startGattServer();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (bluetoothAdapter.isEnabled()) {
+            stopGattServer();
+            stopAdvertising();
+        }
+    }
+
     @SuppressWarnings("ClickableViewAccessibility")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -184,6 +194,13 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         gattServer.addService(createGattService());
     }
 
+    public void stopGattServer() {
+        if (gattServer == null) {
+            return;
+        }
+        gattServer.close();
+    }
+
     public void startAdvertising() {
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
@@ -198,8 +215,15 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 .addServiceUuid(new ParcelUuid(SERVICE_UUID))
                 .build();
 
-        BluetoothLeAdvertiser bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
+        bluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
         bluetoothLeAdvertiser.startAdvertising(settings, data, advertiseCallback);
+    }
+
+    public void stopAdvertising() {
+        if (bluetoothLeAdvertiser == null) {
+            return;
+        }
+        bluetoothLeAdvertiser.stopAdvertising(advertiseCallback);
     }
 
     private BluetoothGattService createGattService() {

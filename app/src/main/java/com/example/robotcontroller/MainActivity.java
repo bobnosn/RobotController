@@ -18,6 +18,7 @@ import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -27,16 +28,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnTouchListener {
 
     Button btn_up, btn_down, btn_left, btn_right;
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
 
-    private final int UP = 0;
-    private final int DOWN = 1;
-    private final int LEFT = 2;
-    private final int RIGHT = 3;
+    private final int STOP = 0;
+    private final int UP = 1;
+    private final int DOWN = 2;
+    private final int LEFT = 3;
+    private final int RIGHT = 4;
 
     private boolean driving = false;
 
@@ -146,13 +148,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         btn_up = findViewById(R.id.btn_up);
-        btn_up.setOnClickListener(this);
+        btn_up.setOnTouchListener(this);
         btn_down = findViewById(R.id.btn_down);
-        btn_down.setOnClickListener(this);
+        btn_down.setOnTouchListener(this);
         btn_left = findViewById(R.id.btn_left);
-        btn_left.setOnClickListener(this);
+        btn_left.setOnTouchListener(this);
         btn_right = findViewById(R.id.btn_right);
-        btn_right.setOnClickListener(this);
+        btn_right.setOnTouchListener(this);
 
         bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
@@ -162,23 +164,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startGattServer();
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.btn_up:
-                Toast.makeText(this, "Up", Toast.LENGTH_SHORT).show();
-                break;
-            case R.id.btn_down:
-                Toast.makeText(this, "Down", Toast.LENGTH_SHORT).show();
-                break;
-            case R.id.btn_left:
-                Toast.makeText(this, "Left", Toast.LENGTH_SHORT).show();
-                break;
-            case R.id.btn_right:
-                Toast.makeText(this, "Right", Toast.LENGTH_SHORT).show();
-                break;
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            switch (v.getId()) {
+                case R.id.btn_up:
+                    //Toast.makeText(this, "Up", Toast.LENGTH_SHORT).show();
+                    direction = UP;
+                    break;
+                case R.id.btn_down:
+                    //Toast.makeText(this, "Down", Toast.LENGTH_SHORT).show();
+                    direction = DOWN;
+                    break;
+                case R.id.btn_left:
+                    //Toast.makeText(this, "Left", Toast.LENGTH_SHORT).show();
+                    direction = LEFT;
+                    break;
+                case R.id.btn_right:
+                    //Toast.makeText(this, "Right", Toast.LENGTH_SHORT).show();
+                    direction = RIGHT;
+                    break;
+            }
         }
+        else if (event.getAction() == MotionEvent.ACTION_UP) {
+            direction = STOP;
+        }
+
+        notifyRegisteredDevices();
+        return true;
     }
 
     public void startGattServer() {

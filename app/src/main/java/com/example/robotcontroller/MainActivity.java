@@ -30,12 +30,13 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements View.OnTouchListener {
 
-    Button btn_up, btn_down, btn_left, btn_right;
+    Button btn_up, btn_down, btn_left, btn_right, btn_connect;
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
 
     public int direction = 0;
+    boolean connected = false;
 
     private static final String TAG = "MainActivity";
 
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
 
         @Override
         public void onStartFailure(int error) {
-            Log.w(TAG, "uh oh" + error);
+            Log.w(TAG, "uh oh, ERROR: " + error);
         }
 
     };
@@ -137,12 +138,25 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         btn_left.setOnTouchListener(this);
         btn_right = findViewById(R.id.btn_right);
         btn_right.setOnTouchListener(this);
+        btn_connect = findViewById(R.id.btn_connect);
+        btn_connect.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (!connected) {
+                    startAdvertising();
+                    startGattServer();
+                    btn_connect.setText("Disconnect");
+                    connected = true;
+                }
+                else {
+                    stopGattServer();
+                    stopAdvertising();
+                    btn_connect.setText("Connect");
+                }
+            }
+        });
 
         bluetoothManager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
-
-        startAdvertising();
-        startGattServer();
     }
 
     @Override

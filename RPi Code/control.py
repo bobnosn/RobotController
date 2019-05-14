@@ -12,6 +12,9 @@ DIRECTION_CHAR_UUID = uuid.UUID('7dbfd27a-b283-4ea3-a90d-75c58aea3511')
 # Get the BLE provider for the Pi
 ble = Adafruit_BluefruitLE.get_provider()
 
+connected = True
+device = None
+
 # Set Pi GPIO mode
 GPIO.setmode(GPIO.BOARD)
 
@@ -73,6 +76,10 @@ def received(data):
         GPIO.output(Motor2_inp2, GPIO.LOW)
         GPIO.output(Motor2, GPIO.HIGH)
 
+    elif int_data == 5:
+        global connected
+        connected = False
+
     else:
         print("Uh oh... this isn't supposed to happen")
 
@@ -103,6 +110,7 @@ def main():
         adapter.start_scan()
         # Search for the first UART device found (will time out after 60 seconds
         # but you can specify an optional timeout_sec parameter to change it)
+        global device
         device = ble.find_device(service_uuids=[UART_SERVICE_UUID])
         if device is None:
             raise RuntimeError('Failed to find UART device!')
@@ -127,7 +135,8 @@ def main():
 
         # Accept data for 30 seconds
         print('Waiting 30 seconds to receive data from the device...')
-        sleep(30)
+        while connected:
+            sleep(1)
 
     finally:
         # Make sure device is disconnected and stopped on exit
@@ -139,7 +148,7 @@ def main():
         GPIO.output(Motor2, GPIO.LOW)
         device.disconnect()
         GPIO.cleanup()
-
+        print('Finished!')
 
 # Initialize the BLE system
 ble.initialize()

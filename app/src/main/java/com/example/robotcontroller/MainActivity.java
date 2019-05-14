@@ -148,9 +148,12 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                     connected = true;
                 }
                 else {
+                    direction = 5;
+                    notifyRegisteredDevices();
                     stopGattServer();
                     stopAdvertising();
                     btn_connect.setText("Connect");
+                    connected = false;
                 }
             }
         });

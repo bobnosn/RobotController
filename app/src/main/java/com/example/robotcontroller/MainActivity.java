@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 .build();
 
         AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName(true)
+                .setIncludeDeviceName(false)
                 .setIncludeTxPowerLevel(false)
                 .addServiceUuid(new ParcelUuid(SERVICE_UUID))
                 .build();

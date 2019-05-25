@@ -19,7 +19,6 @@ import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
@@ -30,15 +29,22 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnTouchListener, JoystickView.JoystickListener {
+public class MainActivity extends AppCompatActivity implements JoystickView.JoystickListener {
 
-    Button btn_up, btn_down, btn_left, btn_right, btn_connect;
+    Button btn_connect;
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
 
     public int direction = 0;
     boolean connected = false;
+
+    final int STOP = 0;
+    final int UP = 1;
+    final int DOWN = 2;
+    final int LEFT = 3;
+    final int RIGHT = 4;
+    final int DISCONNECT = 5;
 
     private static final String TAG = "MainActivity";
 
@@ -145,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                     connected = true;
                 }
                 else {
-                    direction = 5;
+                    direction = DISCONNECT;
                     notifyRegisteredDevices();
                     stopGattServer();
                     stopAdvertising();
@@ -168,41 +174,6 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
             stopGattServer();
             stopAdvertising();
         }
-    }
-
-    @SuppressWarnings("ClickableViewAccessibility")
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        final int STOP = 0;
-        final int UP = 1;
-        final int DOWN = 2;
-        final int LEFT = 3;
-        final int RIGHT = 4;
-/*
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            switch (v.getId()) {
-                case R.id.btn_up:
-                    direction = UP;
-                    break;
-                case R.id.btn_down:
-                    direction = DOWN;
-                    break;
-                case R.id.btn_left:
-                    direction = LEFT;
-                    break;
-                case R.id.btn_right:
-                    direction = RIGHT;
-                    break;
-                default:
-                    direction = STOP;
-            }
-        }
-        else if (event.getAction() == MotionEvent.ACTION_UP) {
-            direction = STOP;
-        }
-
-        notifyRegisteredDevices();*/
-        return true;
     }
 
     public void startGattServer() {
@@ -279,5 +250,15 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     @Override
     public void onJoystickMoved(float xPercent, float yPercent, int id) {
         System.out.println("x: " + xPercent + ", y: " + yPercent);
+
+        if (yPercent < 0) {
+            direction = UP;
+        } else if (yPercent > 0) {
+            direction = DOWN;
+        } else {
+            direction = STOP;
+        }
+
+        notifyRegisteredDevices();
     }
 }

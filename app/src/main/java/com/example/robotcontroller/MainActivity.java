@@ -166,6 +166,8 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     public void onDestroy() {
         super.onDestroy();
         if (bluetoothAdapter.isEnabled()) {
+            direction = 5;
+            notifyRegisteredDevices();
             stopGattServer();
             stopAdvertising();
         }
@@ -227,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 .build();
 
         AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName(false)
+                .setIncludeDeviceName(true)
                 .setIncludeTxPowerLevel(false)
                 .addServiceUuid(new ParcelUuid(SERVICE_UUID))
                 .build();

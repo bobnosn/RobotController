@@ -23,12 +23,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
+import com.harrysoft.joystickview.JoystickView;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements View.OnTouchListener {
+public class MainActivity extends AppCompatActivity implements View.OnTouchListener, JoystickView.JoystickListener {
 
     Button btn_up, btn_down, btn_left, btn_right, btn_connect;
     private BluetoothManager bluetoothManager;
@@ -130,14 +132,9 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        btn_up = findViewById(R.id.btn_up);
-        btn_up.setOnTouchListener(this);
-        btn_down = findViewById(R.id.btn_down);
-        btn_down.setOnTouchListener(this);
-        btn_left = findViewById(R.id.btn_left);
-        btn_left.setOnTouchListener(this);
-        btn_right = findViewById(R.id.btn_right);
-        btn_right.setOnTouchListener(this);
+        JoystickView joystick = findViewById(R.id.joystick);
+        joystick.setJoystickListener(this);
+
         btn_connect = findViewById(R.id.btn_connect);
         btn_connect.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -181,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         final int DOWN = 2;
         final int LEFT = 3;
         final int RIGHT = 4;
-
+/*
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             switch (v.getId()) {
                 case R.id.btn_up:
@@ -204,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
             direction = STOP;
         }
 
-        notifyRegisteredDevices();
+        notifyRegisteredDevices();*/
         return true;
     }
 
@@ -277,5 +274,10 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         return new byte[]{
                 (byte) (value >> 24), (byte) (value >> 16), (byte) (value >> 8), (byte) value
         };
+    }
+
+    @Override
+    public void onJoystickMoved(float xPercent, float yPercent, int id) {
+        System.out.println("x: " + xPercent + ", y: " + yPercent);
     }
 }

@@ -230,14 +230,19 @@ public class MainActivity extends AppCompatActivity implements JoystickView.Joys
     }
 
     private void notifyRegisteredDevices() {
-        BluetoothGattCharacteristic characteristic = gattServer
-                .getService(SERVICE_UUID)
-                .getCharacteristic(CHARACTERISTIC_DIRECTION_UUID);
+        if (gattServer != null) {
+            BluetoothGattCharacteristic characteristic = gattServer
+                    .getService(SERVICE_UUID)
+                    .getCharacteristic(CHARACTERISTIC_DIRECTION_UUID);
 
-        for (BluetoothDevice device : devices) {
-            byte[] value = toByteArray(direction);
-            characteristic.setValue(value);
-            gattServer.notifyCharacteristicChanged(device, characteristic, false);
+
+            for (BluetoothDevice device : devices) {
+                byte[] value = toByteArray(direction);
+                characteristic.setValue(value);
+                gattServer.notifyCharacteristicChanged(device, characteristic, false);
+            }
+        } else {
+            System.out.println("GattServer not initialized");
         }
     }
 
@@ -259,6 +264,8 @@ public class MainActivity extends AppCompatActivity implements JoystickView.Joys
             direction = STOP;
         }
 
+
         notifyRegisteredDevices();
+
     }
 }

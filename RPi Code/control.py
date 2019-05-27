@@ -13,10 +13,6 @@ DIRECTION_CHAR_UUID = uuid.UUID('7dbfd27a-b283-4ea3-a90d-75c58aea3511')
 ble = Adafruit_BluefruitLE.get_provider()
 
 connected = True
-device = None
-
-# Set Pi GPIO mode
-GPIO.setmode(GPIO.BOARD)
 
 Motor1_inp1 = 31    # Motor 1 Input Pin 1
 Motor1_inp2 = 29    # Motor 1 Input Pin 2
@@ -31,6 +27,7 @@ def bytes_to_int(bytes):
 
 # Callback for direction notifications
 def received(data):
+    device = None
     int_data = bytes_to_int(data)
     if int_data == 0:
         print("STOP")
@@ -64,14 +61,14 @@ def received(data):
         GPIO.output(Motor1_inp2, GPIO.LOW)
         GPIO.output(Motor1, GPIO.HIGH)
         GPIO.output(Motor2_inp1, GPIO.LOW)
-        GPIO.output(Motor2_inp2, GPIO.LOW)
-        GPIO.output(Motor2, GPIO.LOW)
+        GPIO.output(Motor2_inp2, GPIO.HIGH)
+        GPIO.output(Motor2, GPIO.HIGH)
 
     elif int_data == 4:
         print("RIGHT")
         GPIO.output(Motor1_inp1, GPIO.LOW)
-        GPIO.output(Motor1_inp2, GPIO.LOW)
-        GPIO.output(Motor1, GPIO.LOW)
+        GPIO.output(Motor1_inp2, GPIO.HIGH)
+        GPIO.output(Motor1, GPIO.HIGH)
         GPIO.output(Motor2_inp1, GPIO.HIGH)
         GPIO.output(Motor2_inp2, GPIO.LOW)
         GPIO.output(Motor2, GPIO.HIGH)
@@ -85,6 +82,9 @@ def received(data):
 
 
 def main():
+    # Set Pi GPIO mode
+    GPIO.setmode(GPIO.BOARD)
+
     # Setup GPIO pins
     GPIO.setup(Motor1_inp1,GPIO.OUT)
     GPIO.setup(Motor1_inp2,GPIO.OUT)
@@ -110,10 +110,14 @@ def main():
         adapter.start_scan()
         # Search for the first UART device found (will time out after 60 seconds
         # but you can specify an optional timeout_sec parameter to change it)
-        global device
-        device = ble.find_device(service_uuids=[UART_SERVICE_UUID])
-        if device is None:
-            raise RuntimeError('Failed to find UART device!')
+        while True:
+            device = ble.find_device(service_uuids=[UART_SERVICE_UUID], timeout_sec=10)
+            if device is not None:
+                print('Found Device!')
+                break
+            else:
+                print('No device yet')
+
     finally:
         # Make sure scanning is stopped before exiting
         adapter.stop_scan()

@@ -32,11 +32,12 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity implements JoystickView.JoystickListener {
 
     Button btn_connect;
-    private BluetoothManager bluetoothManager;
-    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothManager bluetoothManager; // Used to get bluetoothAdapter and gattServer
+    private BluetoothAdapter bluetoothAdapter; // Used to get bluetoothLeAdvertiser
+    private BluetoothGattServer gattServer; // Used to send ble data
     private BluetoothLeAdvertiser bluetoothLeAdvertiser;
 
-    public int direction = 0;
+    public int direction = 0; // This gets sent to all subscribed devices (int represents a direction)
     boolean connected = false;
 
     final int STOP = 0;
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements JoystickView.Joys
 
     private Set<BluetoothDevice> devices = new HashSet<>();
 
-    private BluetoothGattServer gattServer;
+    // Callback used for gattServer advertising
     private AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
         @Override
         public void onStartSuccess(AdvertiseSettings settings) {
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements JoystickView.Joys
         }
 
     };
+    // Callback used for gattServer
     private BluetoothGattServerCallback bluetoothGattServerCallback = new BluetoothGattServerCallback() {
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
@@ -256,13 +258,16 @@ public class MainActivity extends AppCompatActivity implements JoystickView.Joys
     public void onJoystickMoved(float xPercent, float yPercent, int id) {
         System.out.println("x: " + xPercent + ", y: " + yPercent);
 
+        // Joystick is more horizontal than vertical
         if (Math.abs(xPercent) > Math.abs(yPercent)) {
             if (xPercent < 0) {
                 direction = LEFT;
             } else if (xPercent > 0) {
                 direction = RIGHT;
             }
-        } else if (Math.abs(xPercent) < Math.abs(yPercent)) {
+        }
+        // Joystick is more vertical than horizontal
+        else if (Math.abs(xPercent) < Math.abs(yPercent)) {
             if (yPercent < 0) {
                 direction = UP;
             } else if (yPercent > 0) {
@@ -271,8 +276,6 @@ public class MainActivity extends AppCompatActivity implements JoystickView.Joys
         } else {
             direction = STOP;
         }
-
-
 
         notifyRegisteredDevices();
 

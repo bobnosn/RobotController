@@ -256,13 +256,22 @@ public class MainActivity extends AppCompatActivity implements JoystickView.Joys
     public void onJoystickMoved(float xPercent, float yPercent, int id) {
         System.out.println("x: " + xPercent + ", y: " + yPercent);
 
-        if (yPercent < 0) {
-            direction = UP;
-        } else if (yPercent > 0) {
-            direction = DOWN;
+        if (Math.abs(xPercent) > Math.abs(yPercent)) {
+            if (xPercent < 0) {
+                direction = LEFT;
+            } else if (xPercent > 0) {
+                direction = RIGHT;
+            }
+        } else if (Math.abs(xPercent) < Math.abs(yPercent)) {
+            if (yPercent < 0) {
+                direction = UP;
+            } else if (yPercent > 0) {
+                direction = DOWN;
+            }
         } else {
             direction = STOP;
         }
+
 
 
         notifyRegisteredDevices();
